@@ -247,6 +247,19 @@
     }
     .drop-zone.active { display: flex; }
 
+    .type-badge {
+      display: inline-block;
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 2px;
+      margin-left: 4px;
+      font-weight: 600;
+    }
+    .type-badge.num { background: rgba(106, 159, 106, 0.2); color: #8bc78b; border: 1px solid rgba(106, 159, 106, 0.4); }
+    .type-badge.date { background: rgba(106, 159, 106, 0.2); color: #8bc78b; border: 1px solid rgba(106, 159, 106, 0.4); }
+    .type-badge.empty { background: rgba(143, 133, 119, 0.2); color: var(--muted); border: 1px solid rgba(143, 133, 119, 0.3); }
+    .type-badge.str { background: rgba(200, 168, 78, 0.15); color: var(--accent); border: 1px solid rgba(200, 168, 78, 0.3); }
+
     .output-pane {
       flex: 1;
       display: flex;
@@ -787,6 +800,29 @@ Evan,42,Phoenix,evan@example.com,88.1`;
     else renderJson();
   }
 
+  function detectColumnType(values) {
+    let hasNumber = false;
+    let hasDate = false;
+    let allEmpty = true;
+    
+    const dateRegex = /^\d{4}[-\/]\d{2}[-\/]\d{2}(?:[T\s]\d{2}:\d{2}(:\d{2})?)?$/;
+    const numberRegex = /^-?\d+(\.\d+)?$/;
+    
+    for (const val of values) {
+      if (val === undefined || val === '' || val.toString().trim() === '') continue;
+      allEmpty = false;
+      
+      const strVal = val.toString().trim();
+      if (dateRegex.test(strVal)) hasDate = true;
+      else if (numberRegex.test(strVal)) hasNumber = true;
+    }
+    
+    if (allEmpty) return 'empty';
+    if (hasDate) return 'date';
+    if (hasNumber) return 'num';
+    return 'str';
+  }
+
   function renderTable() {
     const rows = parsedData.data;
     if (!rows || rows.length === 0) {
@@ -797,9 +833,17 @@ Evan,42,Phoenix,evan@example.com,88.1`;
     const headers = rows[0];
     const dataRows = rows.slice(1);
 
+    // Detect column types
+    const colTypes = headers.map((_, i) => {
+      const values = dataRows.map(row => row[i]);
+      return detectColumnType(values);
+    });
+
     let html = '<div class="table-wrap"><table><thead><tr>';
     headers.forEach((h, i) => {
-      html += `<th title="${escHtml(h)}">${escHtml(h) || `<span style="color:var(--muted)">col ${i+1}</span>`}</th>`;
+      const typeLabel = colTypes[i] === 'empty' ? '' : colTypes[i];
+      const badge = typeLabel ? `<span class="type-badge ${typeLabel}">${typeLabel}</span>` : '';
+      html += `<th title="${escHtml(h)}">${escHtml(h) || `<span style="color:var(--muted)">col ${i+1}</span>`}${badge}</th>`;
     });
     html += '</tr></thead><tbody>';
 
