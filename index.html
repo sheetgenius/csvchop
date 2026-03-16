@@ -559,7 +559,11 @@ Charlie,35,Chicago" spellcheck="false"></textarea>
     <div class="action-bar">
       <span class="stat" id="outputStat">—</span>
       <button class="btn secondary" id="copyBtn" onclick="copyOutput()" style="display:none;">Copy</button>
-      <button class="btn" id="downloadBtn" onclick="downloadOutput()" style="display:none;">Download JSON</button>
+      <div id="exportGroup" style="display:none; gap: 6px;">
+        <button class="btn" onclick="downloadOutput('json')">Download JSON</button>
+        <button class="btn secondary" onclick="downloadOutput('tsv')">TSV</button>
+        <button class="btn secondary" onclick="downloadOutput('|')">Pipe</button>
+      </div>
     </div>
   </div>
 </div>
@@ -738,7 +742,7 @@ Evan,42,Phoenix,evan@example.com,88.1`;
     document.getElementById('inputStat').textContent = '—';
     document.getElementById('outputStat').textContent = '—';
     document.getElementById('copyBtn').style.display = 'none';
-    document.getElementById('downloadBtn').style.display = 'none';
+    document.getElementById('exportGroup').style.display = 'none';
   }
 
   function parse() {
@@ -862,7 +866,7 @@ Evan,42,Phoenix,evan@example.com,88.1`;
     document.getElementById('outputArea').innerHTML = html;
     document.getElementById('outputStat').innerHTML = `<strong>${dataRows.length}</strong> rows · <strong>${headers.length}</strong> cols`;
     document.getElementById('copyBtn').style.display = 'none';
-    document.getElementById('downloadBtn').style.display = 'inline-block';
+    document.getElementById('exportGroup').style.display = 'flex';
   }
 
   function renderJson() {
@@ -894,7 +898,7 @@ Evan,42,Phoenix,evan@example.com,88.1`;
     const lines = json.split('\n').length;
     document.getElementById('outputStat').innerHTML = `<strong>${json.length.toLocaleString()}</strong> chars · <strong>${lines.toLocaleString()}</strong> lines`;
     document.getElementById('copyBtn').style.display = 'inline-block';
-    document.getElementById('downloadBtn').style.display = 'inline-block';
+    document.getElementById('exportGroup').style.display = 'flex';
   }
 
   function setTab(tab) {
@@ -922,29 +926,58 @@ Evan,42,Phoenix,evan@example.com,88.1`;
     });
   }
 
-  function downloadOutput() {
+  function downloadOutput(format) {
     if (!parsedData) return;
     const rows = parsedData.data;
     if (!rows || rows.length === 0) return;
 
-    let json;
-    if (currentJsonMode === 'objects') {
-      const headers = rows[0];
-      const dataRows = rows.slice(1);
-      json = JSON.stringify(dataRows.map(row => {
-        const obj = {};
-        headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
-        return obj;
-      }), null, 2);
-    } else {
-      json = JSON.stringify(rows, null, 2);
+    let content, filename, mimeType;
+    
+    if (format === 'json') {
+      let json;
+      if (currentJsonMode === 'objects') {
+        const headers = rows[0];
+        const dataRows = rows.slice(1);
+        json = JSON.stringify(dataRows.map(row => {
+          const obj = {};
+          headers.forEach((h, i) => { obj[h] = row[i] !== undefined ? row[i] : ''; });
+          return obj;
+        }), null, 2);
+      } else {
+        json = JSON.stringify(rows, null, 2);
+      }
+      content = json;
+      filename = 'csvchop.json';
+      mimeType = 'application/json';
+    } else if (format === 'tsv') {
+      const delim = '\t';
+      content = rows.map(row => row.map(cell => {
+        const s = cell ?? '';
+        if (s.includes(delim) || s.includes('\n') || s.includes('"')) {
+          return '"' + s.replace(/"/g, '""') + '"';
+        }
+        return s;
+      }).join(delim)).join('\n');
+      filename = 'csvchop.tsv';
+      mimeType = 'text/tab-separated-values';
+    } else if (format === '|') {
+      const delim = '|';
+      content = rows.map(row => row.map(cell => {
+        const s = cell ?? '';
+        if (s.includes(delim) || s.includes('\n')) {
+          return '"' + s.replace(/"/g, '""') + '"';
+        }
+        return s;
+      }).join(delim)).join('\n');
+      filename = 'csvchop.pipe';
+      mimeType = 'text/plain';
     }
 
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'csvchop.json';
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   }
