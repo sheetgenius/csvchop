@@ -229,6 +229,24 @@
     }
     textarea::placeholder { color: var(--muted); }
 
+    .drop-zone {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(200, 168, 78, 0.08);
+      border: 2px dashed var(--accent);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--accent);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .drop-zone.active { display: flex; }
+
     .output-pane {
       flex: 1;
       display: flex;
@@ -488,12 +506,15 @@
         </select>
       </div>
     </div>
-    <textarea id="csvInput" placeholder="Paste your CSV here…
+    <div class="input-wrapper" style="position: relative; flex: 1; display: flex; flex-direction: column;">
+      <div id="dropZone" class="drop-zone">Drop CSV file here</div>
+      <textarea id="csvInput" placeholder="Paste your CSV here…
 
 name,age,city
 Alice,30,New York
 Bob,25,Los Angeles
 Charlie,35,Chicago" spellcheck="false"></textarea>
+    </div>
     <div class="action-bar">
       <span class="stat" id="inputStat">—</span>
       <button class="btn secondary" onclick="clearAll()">Clear</button>
@@ -641,9 +662,55 @@ Evan,42,Phoenix,evan@example.com,88.1`;
 
   const csvInput = document.getElementById('csvInput');
   const delimiter = document.getElementById('delimiter');
+  const dropZone = document.getElementById('dropZone');
 
   csvInput.addEventListener('input', parse);
   delimiter.addEventListener('change', parse);
+
+  // Drag-and-drop support
+  ['dragenter', 'dragover'].forEach(evt => {
+    dropZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add('active');
+    });
+  });
+
+  ['dragleave', 'drop'].forEach(evt => {
+    dropZone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (evt === 'drop') return;
+      dropZone.classList.remove('active');
+    });
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('active');
+
+    const files = e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    if (!file.name.toLowerCase().endsWith('.csv') && 
+        !file.name.toLowerCase().endsWith('.tsv')) {
+      alert('Please drop a CSV or TSV file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      csvInput.value = e.target.result;
+      parse();
+    };
+    reader.readAsText(file);
+  });
+
+  // Prevent default behavior on document level
+  document.addEventListener('dragover', (e) => e.preventDefault());
+  document.addEventListener('drop', (e) => e.preventDefault());
 
   function loadSample() {
     csvInput.value = sampleCSV;
