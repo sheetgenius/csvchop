@@ -5,7 +5,8 @@
     "og.png",
     "og.svg",
     "robots.txt",
-    "sitemap.xml"
+    "sitemap.xml",
+    "BingSiteAuth.xml"
   ],
   "hostname": "csvchop.radicchio.page",
   "site_id": 20,
