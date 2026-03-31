@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-03-28
+
+- Added Bing Webmaster Tools verification file and fixed Radicchio manifest to deploy it correctly
+
 ## 2026-03-22
 
 ### Improved
