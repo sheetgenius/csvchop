@@ -40,59 +40,7 @@
           "Download JSON file",
           "Browser-side — nothing uploaded"
         ]
-      },
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "Is my CSV data uploaded to a server?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "No. csvchop runs entirely in your browser using JavaScript. Your data never leaves your machine."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What CSV delimiters does csvchop support?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "csvchop auto-detects comma, tab, semicolon, and pipe delimiters. You can also override the delimiter manually."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What JSON formats can csvchop export?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "csvchop exports two formats: array of objects (each row becomes an object with column headers as keys — most common for APIs) and array of arrays (raw rows including the header row)."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Does csvchop handle quoted fields and embedded newlines?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. csvchop uses PapaParse, a robust CSV parser that handles quoted fields, escaped characters, and embedded newlines correctly."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What is the maximum file size csvchop can handle?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "csvchop runs in your browser, so limits depend on your device memory. It handles files up to tens of thousands of rows without issue. For very large files (millions of rows), use a dedicated data tool."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can I use csvchop with TSV (tab-separated) files?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes. csvchop auto-detects tab as a delimiter. TSV files work the same as CSV — just paste or drop your file."
-            }
-          }
-        ]
+      }]
       }
     ]
   }
